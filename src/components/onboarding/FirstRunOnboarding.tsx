@@ -34,16 +34,9 @@ export function FirstRunOnboarding({ onComplete, profile }: FirstRunOnboardingPr
   }
 
   return (
-    <main className="relative isolate grid min-h-dvh place-items-center overflow-y-auto bg-desk-bg px-4 py-8">
-      <img
-        alt=""
-        className="pointer-events-none fixed inset-0 -z-20 h-dvh w-screen object-cover object-center opacity-45"
-        src="/assets/stilldesk-cover.jpg"
-      />
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-[linear-gradient(135deg,rgba(18,20,17,0.65),rgba(18,20,17,0.85))]" />
-
+    <main className="grid min-h-dvh place-items-center overflow-y-auto bg-desk-bg px-4 py-8">
       <section className="w-full max-w-lg">
-        <div className="rounded-[1.7rem] border border-desk-border/60 bg-desk-bg/96 p-6 shadow-2xl md:p-9">
+        <div className="rounded-[1.7rem] border border-desk-border bg-desk-bg p-6 shadow-xl md:p-9">
           <img
             alt="StillDesk"
             className="h-14 w-40 rounded-xl border border-desk-border/70 object-cover object-center opacity-90"
@@ -66,8 +59,8 @@ export function FirstRunOnboarding({ onComplete, profile }: FirstRunOnboardingPr
                 <button
                   className={`rounded-xl border px-4 py-3 text-left transition ${
                     active
-                      ? "border-desk-accent/60 bg-desk-accentSoft/40 shadow-[inset_3px_0_0_var(--desk-accent)]"
-                      : "border-desk-border bg-desk-surface/80 hover:bg-desk-surface"
+                      ? "border-desk-accent/60 bg-desk-accentSoft/50 shadow-[inset_3px_0_0_var(--desk-accent)]"
+                      : "border-desk-border/70 bg-desk-soft/50 hover:bg-desk-soft"
                   }`}
                   key={preset.role}
                   onClick={() => setSelectedRole(preset.role)}
