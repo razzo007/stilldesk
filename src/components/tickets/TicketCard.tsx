@@ -4,7 +4,7 @@ import { CategoryBadge, PriorityBadge, StatusBadge } from "./badgeHelpers";
 import { displayTicketId } from "./time";
 import { Avatar } from "../ui/Avatar";
 import type { Ticket } from "../../types/ticket";
-import { getAgeLabel, getAttention } from "../../lib/attention";
+import { getAttention, getTicketAge } from "../../lib/attention";
 
 interface TicketCardProps {
   ticket: Ticket;
@@ -12,65 +12,102 @@ interface TicketCardProps {
   onSelect: () => void;
 }
 
+function leftBorderClass(ticket: Ticket, selected: boolean, attentionLevel: string) {
+  if (selected) return "border-l-[3px] border-l-desk-accent";
+  if (ticket.status === "blocked" || attentionLevel === "critical")
+    return "border-l-[3px] border-l-[var(--desk-amber-text)]/50";
+  if (ticket.priority === "blocker")
+    return "border-l-[3px] border-l-[var(--desk-red-text)]/50";
+  if (attentionLevel === "stale")
+    return "border-l-[3px] border-l-[var(--desk-amber-text)]/30";
+  return "border-l-[3px] border-l-transparent";
+}
+
 export function TicketCard({ ticket, selected, onSelect }: TicketCardProps) {
   const attention = getAttention(ticket);
+  const commentCount = ticket.comments?.length ?? 0;
+  const attachmentCount = ticket.attachments?.length ?? 0;
+  const age = getTicketAge(ticket);
 
   return (
     <button
       className={clsx(
-        "group w-full border-b border-desk-border/70 px-5 py-4 text-left transition hover:bg-desk-surface/70",
-        selected ? "bg-desk-surface/80 shadow-[inset_3px_0_0_var(--desk-accent)] backdrop-blur-xl" : "bg-transparent",
+        "group w-full border-b border-desk-border/70 py-4 pl-4 pr-5 text-left transition hover:bg-desk-surface/60",
+        leftBorderClass(ticket, !!selected, attention.attentionLevel),
+        selected && "bg-desk-surface/70 backdrop-blur-xl",
       )}
       onClick={onSelect}
       type="button"
     >
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs font-semibold tracking-[0.08em] text-desk-muted">
-          {displayTicketId(ticket.id)}
+      {/* ID · module · signal */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="shrink-0 text-xs font-semibold tracking-[0.08em] text-desk-muted">
+            {displayTicketId(ticket.id)}
+          </span>
+          {ticket.module ? (
+            <span className="truncate text-[11px] text-desk-muted/60">{ticket.module}</span>
+          ) : null}
+        </div>
+        <span
+          className={clsx(
+            "shrink-0 text-[11px] leading-none",
+            attention.attentionReason
+              ? "font-medium text-desk-amberText"
+              : "text-desk-muted/70",
+          )}
+        >
+          {attention.attentionReason || `${age}d`}
         </span>
-        <span className="text-xs text-desk-muted">{getAgeLabel(ticket)}</span>
       </div>
 
-      <h3 className="mt-2 line-clamp-2 text-[15px] font-semibold leading-6 text-desk-text">
+      {/* Title */}
+      <h3 className="mt-2 line-clamp-2 text-[14px] font-semibold leading-[1.45] text-desk-text">
         {ticket.title}
       </h3>
 
+      {/* Blocked dependency note */}
       {ticket.status === "blocked" && ticket.dependency_note ? (
-        <p className="mt-2 line-clamp-2 text-xs leading-5 text-desk-amberText">
+        <p className="mt-1.5 line-clamp-1 text-[11px] leading-5 text-desk-amberText">
           {ticket.dependency_note}
         </p>
       ) : null}
 
-      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+      {/* Badges */}
+      <div className="mt-3 flex flex-wrap items-center gap-1">
         <StatusBadge status={ticket.status} />
         <PriorityBadge priority={ticket.priority} />
         <CategoryBadge category={ticket.category} />
-        {attention.attentionReason ? (
-          <span className="text-xs text-desk-amberText">{attention.attentionReason}</span>
-        ) : null}
       </div>
 
+      {/* Assignee + counts */}
       <div className="mt-3 flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <Avatar className="h-6 w-6 text-[10px]" name={ticket.assignee?.name ?? "Unassigned"} />
-          <span className="truncate text-xs text-desk-muted">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <Avatar
+            className="h-5 w-5 shrink-0 text-[9px]"
+            name={ticket.assignee?.name ?? "?"}
+          />
+          <span className="truncate text-[11px] text-desk-muted">
             {ticket.assignee?.name ?? "Unassigned"}
           </span>
         </div>
-        <div className="flex items-center gap-3 text-xs text-desk-muted">
-          <span className="inline-flex items-center gap-1">
-            <MessageSquare className="h-3.5 w-3.5" aria-hidden="true" />
-            {ticket.comments?.length ?? 0}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Paperclip className="h-3.5 w-3.5" aria-hidden="true" />
-            {ticket.attachments?.length ?? 0}
-          </span>
-        </div>
+        {commentCount > 0 || attachmentCount > 0 ? (
+          <div className="flex shrink-0 items-center gap-2.5 text-[11px] text-desk-muted/70">
+            {commentCount > 0 ? (
+              <span className="inline-flex items-center gap-1">
+                <MessageSquare className="h-3 w-3" aria-hidden="true" />
+                {commentCount}
+              </span>
+            ) : null}
+            {attachmentCount > 0 ? (
+              <span className="inline-flex items-center gap-1">
+                <Paperclip className="h-3 w-3" aria-hidden="true" />
+                {attachmentCount}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
       </div>
-      {attention.attentionLevel !== "none" ? (
-        <div className="mt-3 h-px w-full bg-desk-amber/80" aria-hidden="true" />
-      ) : null}
     </button>
   );
 }

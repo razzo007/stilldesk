@@ -132,11 +132,11 @@ export const onboardingPresets: OnboardingPreset[] = [
 export const sampleFlowEvents = [
   {
     label: "Raise",
-    text: "Mira reports a broken onboarding logo check and adds a screenshot.",
+    text: "Alex reports a broken logo detection step and adds a screenshot.",
   },
   {
     label: "Assign",
-    text: "Noah gets ownership, asks one clarifying question, and starts fixing.",
+    text: "Casey gets ownership, asks one clarifying question, and starts fixing.",
   },
   {
     label: "Fix",
