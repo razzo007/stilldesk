@@ -12,7 +12,7 @@ import { TicketDetail } from "./components/tickets/TicketDetail";
 import { TicketList } from "./components/tickets/TicketList";
 import type { TicketListMode } from "./components/tickets/TicketList";
 import { completeProfileOnboarding, getCurrentProfile, getProfiles, signOut, updateProfileRole } from "./lib/auth";
-import { demoProfiles, demoTickets, demoUser } from "./lib/mockData";
+import { demoProfiles, demoTickets, demoUser, previewUser } from "./lib/mockData";
 import { onboardingKey } from "./lib/onboarding";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import { createTicket, deleteTicket, fetchTickets, updateTicket } from "./lib/tickets";
@@ -392,6 +392,13 @@ export default function App() {
           setSelectedId(demoTickets[0]?.id);
           setOnboardingOpen(localStorage.getItem(onboardingKey(demoUser.id)) !== "true");
         }}
+        onPreview={() => {
+          setProfile(previewUser);
+          setProfiles([previewUser]);
+          setTickets([]);
+          setSelectedId(undefined);
+          setOnboardingOpen(localStorage.getItem(onboardingKey(previewUser.id)) !== "true");
+        }}
       />
     );
   }
@@ -439,6 +446,7 @@ export default function App() {
         <AdminUsers profiles={profiles} onRoleChange={handleRoleChange} />
       ) : view === "dashboard" ? (
         <DashboardOverview
+          onNewIssue={() => setDialogOpen(true)}
           onSelect={(ticket) => {
             setSelectedId(ticket.id);
             setView("tickets");
@@ -464,10 +472,12 @@ export default function App() {
           }`}
         >
           <TicketList
+            hasMore={isSupabaseConfigured && tickets.length >= ticketLimit}
             mode={listMode}
-            onModeChange={setListMode}
-            onQueryChange={setQuery}
             onLoadMore={handleLoadMoreTickets}
+            onModeChange={setListMode}
+            onNewIssue={() => setDialogOpen(true)}
+            onQueryChange={setQuery}
             onSelect={(ticket) => setSelectedId(ticket.id)}
             onSortChange={setSort}
             query={query}
@@ -475,7 +485,7 @@ export default function App() {
             sort={sort}
             summary={listSummary}
             tickets={visibleTickets}
-            hasMore={isSupabaseConfigured && tickets.length >= ticketLimit}
+            totalCount={tickets.length}
           />
           <TicketDetail
             allTickets={tickets}

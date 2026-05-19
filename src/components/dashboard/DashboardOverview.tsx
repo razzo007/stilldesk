@@ -11,10 +11,11 @@ import { displayTicketId, formatDate } from "../tickets/time";
 interface DashboardOverviewProps {
   tickets: Ticket[];
   profiles: Profile[];
+  onNewIssue?: () => void;
   onSelect: (ticket: Ticket) => void;
 }
 
-export function DashboardOverview({ onSelect, profiles, tickets }: DashboardOverviewProps) {
+export function DashboardOverview({ onNewIssue, onSelect, profiles, tickets }: DashboardOverviewProps) {
   const metrics = getTicketMetrics(tickets);
   const recentlyFixed = tickets
     .filter((ticket) => ticket.fixed_at)
@@ -31,6 +32,28 @@ export function DashboardOverview({ onSelect, profiles, tickets }: DashboardOver
     .sort((a, b) => b.count - a.count);
 
   const maxCategoryCount = Math.max(...categoryCounts.map((item) => item.count), 1);
+
+  if (tickets.length === 0) {
+    return (
+      <section className="grid h-full place-items-center bg-desk-bg p-8">
+        <div className="text-center">
+          <p className="text-lg font-semibold text-desk-text">Nothing here yet.</p>
+          <p className="mt-2 max-w-xs text-sm leading-6 text-desk-muted">
+            The dashboard lights up once your team starts raising tickets.
+          </p>
+          {onNewIssue ? (
+            <button
+              className="mt-5 rounded-full border border-desk-accent/50 bg-desk-accentSoft/60 px-5 py-2.5 text-sm font-medium text-desk-accent transition hover:bg-desk-accentSoft"
+              onClick={onNewIssue}
+              type="button"
+            >
+              Create first ticket
+            </button>
+          ) : null}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="h-full overflow-y-auto bg-desk-bg p-4 scrollbar-soft lg:p-6">

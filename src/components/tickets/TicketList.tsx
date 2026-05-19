@@ -9,6 +9,7 @@ export type TicketListMode = "comfortable" | "ledger";
 
 interface TicketListProps {
   tickets: Ticket[];
+  totalCount: number;
   selectedId?: string;
   query: string;
   mode: TicketListMode;
@@ -16,6 +17,7 @@ interface TicketListProps {
   summary: string;
   hasMore?: boolean;
   onModeChange: (mode: TicketListMode) => void;
+  onNewIssue?: () => void;
   onQueryChange: (query: string) => void;
   onLoadMore?: () => Promise<void>;
   onSelect: (ticket: Ticket) => void;
@@ -37,6 +39,7 @@ export function TicketList({
   mode,
   onLoadMore,
   onModeChange,
+  onNewIssue,
   onQueryChange,
   onSelect,
   onSortChange,
@@ -45,6 +48,7 @@ export function TicketList({
   sort,
   summary,
   tickets,
+  totalCount,
 }: TicketListProps) {
   return (
     <section className="flex min-h-0 flex-col border-r border-desk-border bg-desk-bg/45 backdrop-blur-xl">
@@ -137,6 +141,24 @@ export function TicketList({
                 </button>
               </div>
             ) : null}
+          </div>
+        ) : totalCount === 0 ? (
+          <div className="grid min-h-60 place-items-center rounded-xl border border-dashed border-desk-border bg-desk-surface/55 p-8 text-center">
+            <div>
+              <p className="text-base font-medium text-desk-text">Your desk is empty.</p>
+              <p className="mt-2 max-w-xs text-sm leading-6 text-desk-muted">
+                Raise the first ticket when something breaks or needs tracking.
+              </p>
+              {onNewIssue ? (
+                <button
+                  className="mt-4 rounded-full border border-desk-accent/50 bg-desk-accentSoft/60 px-4 py-2 text-sm font-medium text-desk-accent transition hover:bg-desk-accentSoft"
+                  onClick={onNewIssue}
+                  type="button"
+                >
+                  Create first ticket
+                </button>
+              ) : null}
+            </div>
           </div>
         ) : (
           <EmptyState

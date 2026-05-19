@@ -58,6 +58,18 @@ export const demoProfiles: Profile[] = [
 
 export const demoUser = demoProfiles[0];
 
+export const previewUser: Profile = {
+  id: "preview-user",
+  name: "Visitor",
+  email: "",
+  role: "supreme_leader",
+  work_role: "product_manager",
+  department: "product",
+  preferred_view: "dashboard",
+  preferred_filters: ["needs_attention", "blocked", "all"],
+  onboarding_completed: false,
+};
+
 const baseTickets: Ticket[] = [
   {
     id: "SD-1048",

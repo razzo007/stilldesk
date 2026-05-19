@@ -7,9 +7,10 @@ import { Input } from "./components/ui/Input";
 
 interface LoginScreenProps {
   onDemo: () => void;
+  onPreview: () => void;
 }
 
-export function LoginScreen({ onDemo }: LoginScreenProps) {
+export function LoginScreen({ onDemo, onPreview }: LoginScreenProps) {
   const [mode, setMode] = useState<"login" | "register" | "forgot">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -143,11 +144,15 @@ export function LoginScreen({ onDemo }: LoginScreenProps) {
             </Button>
           </div>
 
-          {!isSupabaseConfigured ? (
-            <p className="mt-5 text-xs leading-5 text-desk-muted">
-              Create tickets for internal teams to fast up the work.
-            </p>
-          ) : null}
+          <div className="mt-5 border-t border-desk-border/50 pt-5">
+            <button
+              className="w-full text-center text-xs text-desk-muted transition-colors hover:text-desk-text"
+              onClick={onPreview}
+              type="button"
+            >
+              Try it with an empty desk — no sign-up needed
+            </button>
+          </div>
         </div>
       </section>
     </main>
