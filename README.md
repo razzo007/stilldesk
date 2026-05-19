@@ -21,6 +21,7 @@ StillDesk is not Jira, ClickUp, a kanban board, sprint planning software, a road
 
 - Supabase Auth magic-link login
 - Email/password login, registration, and password reset
+- First-run role and department setup with sensible default views
 - Calm split-view ticket inbox
 - Create tickets with title, description, category, priority, module, owner, and screenshots
 - Private Supabase Storage bucket for screenshots
@@ -96,7 +97,11 @@ The function checks the Supabase user token before sending when Supabase env var
 
 ## Supabase Setup
 
-Run the migration in `supabase/migrations/0001_issue_desk.sql`.
+Run the migrations in `supabase/migrations/` in order:
+
+- `0001_issue_desk.sql`
+- `0002_internal_team_launch.sql`
+- `0003_first_run_onboarding.sql`
 
 It creates:
 
@@ -138,6 +143,8 @@ The UI refers to `supreme_leader` as Leader view.
 Server-side checks enforce screenshot MIME types, 5 MB file size, and a maximum of 3 attachments per ticket. Blocked tickets require a dependency note.
 
 ## Sample Data
+
+The app includes local demo sample data so first-time users can feel the full loop: raise, assign, discuss, fix, verify, and close. Production Supabase installs can start empty; the samples are only cues for the first experience.
 
 The file `supabase/seed/seed.sql` includes sample SalesGPT-style issues:
 

@@ -1,6 +1,6 @@
 import { demoProfiles } from "./mockData";
 import { isSupabaseConfigured, supabase } from "./supabase";
-import type { Profile, UserRole } from "../types/user";
+import type { Department, Profile, UserRole, WorkRole } from "../types/user";
 
 const adminEmails = (import.meta.env.VITE_ADMIN_EMAILS as string | undefined)
   ?.split(",")
@@ -150,6 +150,41 @@ export async function updateProfileRole(id: string, role: UserRole) {
     .from("profiles")
     .update({ role })
     .eq("id", id)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return data as Profile;
+}
+
+export async function completeProfileOnboarding(input: {
+  id: string;
+  work_role: WorkRole;
+  department: Department;
+  preferred_filters: string[];
+  preferred_view: "welcome" | "tickets" | "board" | "dashboard";
+}) {
+  if (!isSupabaseConfigured || !supabase) {
+    return {
+      id: input.id,
+      work_role: input.work_role,
+      department: input.department,
+      preferred_filters: input.preferred_filters,
+      preferred_view: input.preferred_view,
+      onboarding_completed: true,
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({
+      work_role: input.work_role,
+      department: input.department,
+      preferred_filters: input.preferred_filters,
+      preferred_view: input.preferred_view,
+      onboarding_completed: true,
+    })
+    .eq("id", input.id)
     .select("*")
     .single();
 

@@ -5,13 +5,15 @@ import { DashboardOverview } from "./components/dashboard/DashboardOverview";
 import { WelcomeScreen } from "./components/dashboard/WelcomeScreen";
 import { AdminUsers } from "./components/admin/AdminUsers";
 import { TicketBoard } from "./components/board/TicketBoard";
+import { FirstRunOnboarding } from "./components/onboarding/FirstRunOnboarding";
 import { ProfileSettingsDialog } from "./components/profile/ProfileSettingsDialog";
 import { CreateTicketDialog } from "./components/tickets/CreateTicketDialog";
 import { TicketDetail } from "./components/tickets/TicketDetail";
 import { TicketList } from "./components/tickets/TicketList";
 import type { TicketListMode } from "./components/tickets/TicketList";
-import { getCurrentProfile, getProfiles, signOut, updateProfileRole } from "./lib/auth";
+import { completeProfileOnboarding, getCurrentProfile, getProfiles, signOut, updateProfileRole } from "./lib/auth";
 import { demoProfiles, demoTickets, demoUser } from "./lib/mockData";
+import { onboardingKey } from "./lib/onboarding";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 import { createTicket, fetchTickets, updateTicket } from "./lib/tickets";
 import { sendTicketEmail, uniqueEmails } from "./lib/notifications";
@@ -24,8 +26,7 @@ import {
   type TicketSort,
 } from "./lib/attention";
 import type { CreateTicketInput, Ticket, TicketStatus } from "./types/ticket";
-import type { Profile } from "./types/user";
-import type { UserRole } from "./types/user";
+import type { Department, Profile, UserRole, WorkRole } from "./types/user";
 import { LoginScreen } from "./LoginScreen";
 
 function ticketMatchesSearch(ticket: Ticket, query: string) {
@@ -114,6 +115,7 @@ export default function App() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [ticketLimit, setTicketLimit] = useState(50);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -135,6 +137,7 @@ export default function App() {
       setProfiles(team);
       setTickets(loadedTickets);
       setSelectedId((existing) => existing ?? loadedTickets[0]?.id);
+      setOnboardingOpen(!current.onboarding_completed && localStorage.getItem(onboardingKey(current.id)) !== "true");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not load StillDesk.");
     } finally {
@@ -317,6 +320,44 @@ export default function App() {
     setProfile(null);
     setTickets([]);
     setSelectedId(undefined);
+    setOnboardingOpen(false);
+  }
+
+  async function handleOnboardingComplete(input: {
+    department: Department;
+    preferred_filters: string[];
+    preferred_view: "welcome" | "tickets" | "board" | "dashboard";
+    work_role: WorkRole;
+  }) {
+    if (!profile) return;
+
+    localStorage.setItem("stilldesk:visible-filters", JSON.stringify(input.preferred_filters));
+    localStorage.setItem(onboardingKey(profile.id), "true");
+
+    const updated = await completeProfileOnboarding({
+      id: profile.id,
+      ...input,
+    });
+
+    const onboardedProfile = { ...profile, ...updated };
+
+    setProfile(onboardedProfile);
+    setProfiles((current) => current.map((item) => (item.id === profile.id ? { ...item, ...updated } : item)));
+    setOnboardingOpen(false);
+
+    if (input.preferred_view === "tickets") {
+      const primaryFilter = input.preferred_filters[0] as TicketFilter | undefined;
+      if (primaryFilter) {
+        setActiveFilter(primaryFilter);
+        const matchingTickets = sortTickets(
+          tickets.filter((ticket) => ticketMatchesFilter(ticket, primaryFilter, onboardedProfile)),
+          sort,
+        );
+        setSelectedId(matchingTickets[0]?.id ?? tickets[0]?.id);
+      }
+    }
+
+    setView(input.preferred_view);
   }
 
   if (loading) {
@@ -335,9 +376,14 @@ export default function App() {
           setProfiles(demoProfiles);
           setTickets(demoTickets);
           setSelectedId(demoTickets[0]?.id);
+          setOnboardingOpen(localStorage.getItem(onboardingKey(demoUser.id)) !== "true");
         }}
       />
     );
+  }
+
+  if (onboardingOpen) {
+    return <FirstRunOnboarding onComplete={handleOnboardingComplete} profile={profile} />;
   }
 
   return (

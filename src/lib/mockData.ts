@@ -15,24 +15,44 @@ export const demoProfiles: Profile[] = [
     name: "Raj",
     email: "raj@stilldesk.local",
     role: "supreme_leader",
+    work_role: "product_manager",
+    department: "product",
+    preferred_view: "dashboard",
+    preferred_filters: ["needs_attention", "blocked", "waiting_verification", "unassigned", "all"],
+    onboarding_completed: false,
   },
   {
     id: "demo-emma",
     name: "Ava Chen",
     email: "ava@stilldesk.local",
     role: "developer",
+    work_role: "developer",
+    department: "engineering",
+    preferred_view: "tickets",
+    preferred_filters: ["assigned", "being_fixed", "blocked", "backend", "frontend"],
+    onboarding_completed: true,
   },
   {
     id: "demo-iris",
     name: "Noah Patel",
     email: "noah@stilldesk.local",
     role: "developer",
+    work_role: "developer",
+    department: "engineering",
+    preferred_view: "board",
+    preferred_filters: ["assigned", "blocked", "in_progress", "fixed"],
+    onboarding_completed: true,
   },
   {
     id: "demo-reporter",
     name: "Mira Shah",
     email: "mira@stilldesk.local",
     role: "reporter",
+    work_role: "support_qa",
+    department: "support",
+    preferred_view: "tickets",
+    preferred_filters: ["mine", "waiting_verification", "blocked", "all"],
+    onboarding_completed: true,
   },
 ];
 
@@ -198,5 +218,47 @@ export const demoTickets: Ticket[] = baseTickets.map((ticket): Ticket => ({
       created_at: ticket.created_at,
       user: demoProfiles.find((profile) => profile.id === ticket.created_by),
     },
+    ...(ticket.assigned_to
+      ? [
+          {
+            id: `${ticket.id}-a2`,
+            ticket_id: ticket.id,
+            action: "assigned_to",
+            old_value: null,
+            new_value: ticket.assigned_to,
+            user_id: ticket.created_by,
+            created_at: ticket.updated_at,
+            user: demoProfiles.find((profile) => profile.id === ticket.created_by),
+          },
+        ]
+      : []),
+    ...(ticket.fixed_at
+      ? [
+          {
+            id: `${ticket.id}-a3`,
+            ticket_id: ticket.id,
+            action: "status",
+            old_value: "in_progress",
+            new_value: "fixed",
+            user_id: ticket.assigned_to ?? ticket.created_by,
+            created_at: ticket.fixed_at,
+            user: demoProfiles.find((profile) => profile.id === (ticket.assigned_to ?? ticket.created_by)),
+          },
+        ]
+      : []),
+    ...(ticket.verified_at
+      ? [
+          {
+            id: `${ticket.id}-a4`,
+            ticket_id: ticket.id,
+            action: "status",
+            old_value: "fixed",
+            new_value: "verified",
+            user_id: ticket.created_by,
+            created_at: ticket.verified_at,
+            user: demoProfiles.find((profile) => profile.id === ticket.created_by),
+          },
+        ]
+      : []),
   ],
 }));
