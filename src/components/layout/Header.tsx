@@ -45,7 +45,7 @@ export function Header({
         <div className="flex items-center gap-3">
           <img
             alt="StillDesk"
-            className="h-10 w-44 object-contain object-left"
+            className="h-10 w-44 rounded-xl object-contain object-left"
             src="/assets/stilldesk-logo.png"
           />
         </div>
