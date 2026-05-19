@@ -66,6 +66,7 @@ export interface Ticket {
   assigned_to?: string | null;
   module?: string | null;
   dependency_note?: string | null;
+  blocked_by_id?: string | null;
   created_at: string;
   updated_at: string;
   fixed_at?: string | null;

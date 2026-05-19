@@ -152,9 +152,16 @@ export async function createTicket(input: CreateTicketInput, user: Profile): Pro
   return (await fetchTickets()).find((item) => item.id === ticket.id) ?? ticket;
 }
 
+export async function deleteTicket(ticketId: string): Promise<void> {
+  if (!isSupabaseConfigured || !supabase) return;
+
+  const { error } = await supabase.from("issue_tickets").delete().eq("id", ticketId);
+  if (error) throw error;
+}
+
 export async function updateTicket(
   ticket: Ticket,
-  updates: Partial<Pick<Ticket, "status" | "assigned_to" | "priority" | "dependency_note" | "category">>,
+  updates: Partial<Pick<Ticket, "status" | "assigned_to" | "priority" | "dependency_note" | "blocked_by_id" | "category">>,
   user: Profile,
 ): Promise<Ticket> {
   const now = new Date().toISOString();

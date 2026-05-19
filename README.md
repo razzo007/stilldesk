@@ -90,10 +90,14 @@ Emails are sent when:
 
 - a bug is assigned to someone
 - a bug is marked `fixed`, `verified`, or `closed`
+- a teammate is @mentioned in a comment
+- a bug is marked blocked
 
-The Resend API key must live in Netlify environment variables. Do not expose it with a `VITE_` prefix.
+The Resend API key must live in your host's environment variables. Do not expose it with a `VITE_` prefix.
 
 The function checks the Supabase user token before sending when Supabase env vars are configured. In demo mode, emails are skipped.
+
+**Not on Netlify?** The function is plain Node.js and works on any serverless platform (Vercel, Railway, Render, etc.). Copy it to the appropriate functions directory for your host and set the same environment variables. No Netlify-specific APIs are used.
 
 ## Supabase Setup
 
@@ -102,6 +106,7 @@ Run the migrations in `supabase/migrations/` in order:
 - `0001_issue_desk.sql`
 - `0002_internal_team_launch.sql`
 - `0003_first_run_onboarding.sql`
+- `0004_ticket_links_and_delete.sql`
 
 It creates:
 
@@ -158,6 +163,23 @@ The file `supabase/seed/seed.sql` includes sample SalesGPT-style issues:
 - Mobile pricing CTA overlap
 
 For local Supabase, create matching auth users first, then replace the sample UUIDs with real auth user IDs before running the seed.
+
+## Mobile
+
+StillDesk is desktop-first. The ticket inbox, detail panel, and kanban board are all designed for screens wider than 768px.
+
+On mobile and tablet you can browse tickets, read comments, and view the dashboard. Creating tickets, editing, and drag-drop on the board require a larger screen. This is intentional — issue triage is a desk activity.
+
+## Keyboard shortcuts
+
+| Key | Action |
+|---|---|
+| `?` | Show keyboard shortcuts |
+| `⌘ K` | Search tickets |
+| `N` | New issue |
+| `J` | Next ticket |
+| `K` | Previous ticket |
+| `Esc` | Close panel or dialog |
 
 ## Roadmap
 

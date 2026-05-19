@@ -15,7 +15,7 @@ import { completeProfileOnboarding, getCurrentProfile, getProfiles, signOut, upd
 import { demoProfiles, demoTickets, demoUser } from "./lib/mockData";
 import { onboardingKey } from "./lib/onboarding";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
-import { createTicket, fetchTickets, updateTicket } from "./lib/tickets";
+import { createTicket, deleteTicket, fetchTickets, updateTicket } from "./lib/tickets";
 import { sendTicketEmail, uniqueEmails } from "./lib/notifications";
 import { canCloseTicket, canEditTicket, canMarkFixed, canReopenTicket, canVerifyTicket } from "./lib/permissions";
 import {
@@ -28,6 +28,7 @@ import {
 import type { CreateTicketInput, Ticket, TicketStatus } from "./types/ticket";
 import type { Department, Profile, UserRole, WorkRole } from "./types/user";
 import { LoginScreen } from "./LoginScreen";
+import { KeyboardShortcutsModal } from "./components/ui/KeyboardShortcutsModal";
 
 function ticketMatchesSearch(ticket: Ticket, query: string) {
   const normalized = query.trim().toLowerCase();
@@ -114,6 +115,7 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [ticketLimit, setTicketLimit] = useState(50);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -208,6 +210,12 @@ export default function App() {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         document.getElementById("ticket-search")?.focus();
+        return;
+      }
+
+      if (event.key === "?") {
+        event.preventDefault();
+        setShortcutsOpen(true);
         return;
       }
 
@@ -313,6 +321,12 @@ export default function App() {
     const updated = await updateProfileRole(id, role);
     setProfiles((current) => current.map((item) => (item.id === id ? { ...item, ...updated } : item)));
     if (profile?.id === id) setProfile({ ...profile, ...updated });
+  }
+
+  async function handleDeleteTicket(ticket: Ticket) {
+    await deleteTicket(ticket.id);
+    setTickets((current) => current.filter((item) => item.id !== ticket.id));
+    setSelectedId(undefined);
   }
 
   async function handleSignOut() {
@@ -464,7 +478,10 @@ export default function App() {
             hasMore={isSupabaseConfigured && tickets.length >= ticketLimit}
           />
           <TicketDetail
+            allTickets={tickets}
             currentUser={profile}
+            onDeleteTicket={handleDeleteTicket}
+            onSelectTicket={(ticket) => setSelectedId(ticket.id)}
             onTicketChange={handleTicketChange}
             profiles={profiles}
             ticket={selectedTicket}
@@ -484,6 +501,7 @@ export default function App() {
         open={profileOpen}
         profile={profile}
       />
+      <KeyboardShortcutsModal onClose={() => setShortcutsOpen(false)} open={shortcutsOpen} />
     </AppShell>
   );
 }

@@ -1,4 +1,4 @@
-import { CheckCircle2, CircleDot } from "lucide-react";
+import { CheckCircle2, CircleDot, Link2, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { categories, categoryLabels, priorities, priorityLabels, statuses, statusLabels } from "../../lib/constants";
 import { addComment, updateTicket } from "../../lib/tickets";
@@ -6,6 +6,7 @@ import { sendTicketEmail, uniqueEmails } from "../../lib/notifications";
 import {
   canAssignTicket,
   canCloseTicket,
+  canDeleteTicket,
   canEditTicket,
   canMarkFixed,
   canReopenTicket,
@@ -28,12 +29,18 @@ interface TicketDetailProps {
   ticket?: Ticket;
   currentUser: Profile;
   profiles: Profile[];
+  allTickets: Ticket[];
   onTicketChange: (ticket: Ticket) => void;
+  onSelectTicket: (ticket: Ticket) => void;
+  onDeleteTicket: (ticket: Ticket) => Promise<void>;
 }
 
-export function TicketDetail({ ticket, currentUser, profiles, onTicketChange }: TicketDetailProps) {
+export function TicketDetail({ ticket, currentUser, profiles, allTickets, onTicketChange, onSelectTicket, onDeleteTicket }: TicketDetailProps) {
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [dependencyNote, setDependencyNote] = useState(ticket?.dependency_note ?? "");
+  const [blockedById, setBlockedById] = useState(ticket?.blocked_by_id ?? "");
   const [editOpen, setEditOpen] = useState(false);
   const [reopenNote, setReopenNote] = useState("");
   const [reopenOpen, setReopenOpen] = useState(false);
@@ -41,10 +48,12 @@ export function TicketDetail({ ticket, currentUser, profiles, onTicketChange }: 
 
   useEffect(() => {
     setDependencyNote(ticket?.dependency_note ?? "");
+    setBlockedById(ticket?.blocked_by_id ?? "");
+    setConfirmDelete(false);
     setActionError("");
     setReopenOpen(false);
     setReopenNote("");
-  }, [ticket?.id, ticket?.dependency_note]);
+  }, [ticket?.id, ticket?.dependency_note, ticket?.blocked_by_id]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -73,6 +82,29 @@ export function TicketDetail({ ticket, currentUser, profiles, onTicketChange }: 
   const canVerify = canVerifyTicket(currentUser, ticket);
   const canClose = canCloseTicket(currentUser);
   const canReopen = canReopenTicket(currentUser, ticket);
+  const canDelete = canDeleteTicket(currentUser);
+
+  const blockingTicket = ticket.blocked_by_id
+    ? allTickets.find((t) => t.id === ticket.blocked_by_id) ?? null
+    : null;
+
+  const otherTickets = allTickets.filter(
+    (t) => t.id !== ticket.id && !["verified", "closed"].includes(t.status),
+  );
+
+  async function handleDelete() {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    setDeleting(true);
+    try {
+      await onDeleteTicket(currentTicket);
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
+  }
 
   function validateStatusChange(updates: Parameters<typeof updateTicket>[1]) {
     if (!updates.status) return true;
@@ -373,6 +405,16 @@ export function TicketDetail({ ticket, currentUser, profiles, onTicketChange }: 
                 <p className="mt-2 text-sm leading-6 text-desk-amberText">
                   {ticket.dependency_note || "Needs more info."}
                 </p>
+                {blockingTicket ? (
+                  <button
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-desk-amber/60 bg-desk-surface/50 px-2.5 py-1.5 text-xs font-medium text-desk-amberText transition hover:bg-desk-surface/80"
+                    onClick={() => onSelectTicket(blockingTicket)}
+                    type="button"
+                  >
+                    <Link2 className="h-3 w-3" aria-hidden="true" />
+                    Blocked by {blockingTicket.id} — {blockingTicket.title}
+                  </button>
+                ) : null}
               </section>
             ) : null}
           </div>
@@ -421,9 +463,28 @@ export function TicketDetail({ ticket, currentUser, profiles, onTicketChange }: 
                       placeholder="Dependency, decision, or missing context."
                       value={dependencyNote}
                     />
+                    <Select
+                      label="Blocked by ticket (optional)"
+                      name="blocked_by_id"
+                      onChange={(event) => setBlockedById(event.target.value)}
+                      options={[
+                        { value: "", label: "None" },
+                        ...otherTickets.map((t) => ({
+                          value: t.id,
+                          label: `${t.id} — ${t.title}`,
+                        })),
+                      ]}
+                      value={blockedById}
+                    />
                     <Button
                       isLoading={saving}
-                      onClick={() => patchTicket({ status: "blocked", dependency_note: dependencyNote })}
+                      onClick={() =>
+                        patchTicket({
+                          status: "blocked",
+                          dependency_note: dependencyNote,
+                          blocked_by_id: blockedById || null,
+                        })
+                      }
                       variant="secondary"
                     >
                       Save blocked
@@ -462,6 +523,44 @@ export function TicketDetail({ ticket, currentUser, profiles, onTicketChange }: 
             </section>
 
             <ActivityTimeline activity={ticket.activity ?? []} />
+
+            {canDelete ? (
+              <section className="border-t border-desk-border/60 pt-4">
+                {confirmDelete ? (
+                  <div className="grid gap-2">
+                    <p className="text-xs text-desk-redText">
+                      This will permanently delete the ticket. There is no undo.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        className="flex-1"
+                        isLoading={deleting}
+                        onClick={handleDelete}
+                        variant="danger"
+                      >
+                        Yes, delete
+                      </Button>
+                      <Button
+                        className="flex-1"
+                        onClick={() => setConfirmDelete(false)}
+                        variant="ghost"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    className="inline-flex items-center gap-2 text-xs text-desk-muted transition hover:text-desk-redText"
+                    onClick={handleDelete}
+                    type="button"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    Delete ticket
+                  </button>
+                )}
+              </section>
+            ) : null}
           </aside>
         </div>
 

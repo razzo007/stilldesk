@@ -37,3 +37,7 @@ export function canReopenTicket(profile: Profile | null | undefined, ticket?: Ti
   if (!profile || !ticket) return false;
   return isLeader(profile) || ticket.created_by === profile.id || ticket.assigned_to === profile.id;
 }
+
+export function canDeleteTicket(profile: Profile | null | undefined) {
+  return isLeader(profile);
+}
