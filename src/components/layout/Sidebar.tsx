@@ -147,7 +147,7 @@ export function Sidebar({
 
   return (
     <aside
-      className={`hidden h-full min-h-0 shrink-0 flex-col overflow-hidden border-r border-desk-border bg-desk-bg/72 px-3 py-4 backdrop-blur-xl transition-[width] duration-300 md:flex ${
+      className={`app-sidebar hidden h-full min-h-0 shrink-0 flex-col overflow-hidden border-r border-desk-border px-3 py-4 transition-[width] duration-300 md:flex ${
         collapsed ? "w-20" : "w-60"
       }`}
     >

@@ -67,7 +67,7 @@ export function Header({
             </div>
           </button>
           {open ? (
-            <div className="glass-panel absolute right-0 top-12 z-40 w-60 rounded-2xl p-2">
+            <div className="account-menu absolute right-0 top-12 z-40 w-60 rounded-2xl p-2">
               <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-desk-text hover:bg-desk-soft" onClick={onProfile} type="button">
                 <UserRound className="h-4 w-4" aria-hidden="true" />
                 Profile

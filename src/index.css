@@ -62,6 +62,14 @@ body {
     linear-gradient(180deg, rgba(255, 252, 246, 0.92) 0%, var(--desk-bg) 50%, #f4efe6 100%);
 }
 
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(92, 114, 78, 0.18), transparent 24rem),
+    radial-gradient(circle at 90% 0%, rgba(92, 72, 42, 0.16), transparent 26rem),
+    radial-gradient(circle at 52% 100%, rgba(52, 67, 62, 0.18), transparent 30rem),
+    linear-gradient(180deg, #191b16 0%, #10120f 46%, #0d0f0c 100%);
+}
+
 button,
 input,
 textarea,
@@ -106,7 +114,46 @@ select:focus-visible {
 }
 
 :root[data-theme="dark"] .glass-panel {
+  background: rgba(20, 22, 18, 0.92);
   box-shadow: 0 18px 52px rgba(0, 0, 0, 0.26);
+}
+
+.app-sidebar {
+  background:
+    linear-gradient(180deg, rgba(255, 253, 247, 0.94), rgba(243, 238, 226, 0.94)),
+    var(--desk-bg);
+  box-shadow:
+    inset -1px 0 0 var(--desk-border),
+    18px 0 44px rgba(80, 68, 46, 0.06);
+}
+
+:root[data-theme="dark"] .app-sidebar {
+  background:
+    linear-gradient(180deg, rgba(24, 27, 22, 0.98), rgba(17, 19, 16, 0.98)),
+    #11130f;
+  box-shadow:
+    inset -1px 0 0 var(--desk-border),
+    18px 0 52px rgba(0, 0, 0, 0.24);
+}
+
+.account-menu {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 252, 0.98), rgba(245, 240, 229, 0.98)),
+    var(--desk-bg);
+  border: 1px solid var(--desk-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 24px 58px rgba(58, 48, 32, 0.16);
+}
+
+:root[data-theme="dark"] .account-menu {
+  background:
+    linear-gradient(145deg, rgba(21, 23, 19, 0.99), rgba(14, 16, 13, 0.99)),
+    #11130f;
+  border-color: rgba(218, 211, 190, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 28px 68px rgba(0, 0, 0, 0.52);
 }
 
 .pastel-scribble {
