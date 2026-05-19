@@ -3,20 +3,20 @@
 @tailwind utilities;
 
 :root {
-  --desk-bg: #f5f3ee;
-  --desk-surface: rgba(255, 255, 252, 0.68);
-  --desk-border: rgba(133, 124, 104, 0.24);
-  --desk-text: #23251f;
-  --desk-muted: #737166;
-  --desk-soft: rgba(224, 231, 213, 0.54);
-  --desk-accent: #54735a;
-  --desk-accent-soft: rgba(195, 216, 181, 0.56);
-  --desk-green: rgba(203, 223, 196, 0.58);
-  --desk-green-text: #416142;
-  --desk-amber: rgba(236, 218, 176, 0.62);
-  --desk-amber-text: #735b2a;
-  --desk-red: rgba(235, 197, 190, 0.58);
-  --desk-red-text: #7b4940;
+  --desk-bg: #f8f4ed;
+  --desk-surface: rgba(255, 255, 250, 0.76);
+  --desk-border: rgba(124, 113, 94, 0.18);
+  --desk-text: #25231f;
+  --desk-muted: #786f61;
+  --desk-soft: rgba(220, 231, 207, 0.58);
+  --desk-accent: #627b57;
+  --desk-accent-soft: rgba(198, 217, 183, 0.58);
+  --desk-green: rgba(207, 225, 199, 0.62);
+  --desk-green-text: #486843;
+  --desk-amber: rgba(239, 220, 181, 0.66);
+  --desk-amber-text: #785f2d;
+  --desk-red: rgba(235, 201, 194, 0.62);
+  --desk-red-text: #7f4c42;
   color: var(--desk-text);
   background: var(--desk-bg);
   font-synthesis: none;
@@ -56,10 +56,10 @@ body {
   margin: 0;
   min-width: 320px;
   background:
-    radial-gradient(circle at 12% 8%, rgba(184, 211, 162, 0.18), transparent 26rem),
-    radial-gradient(circle at 88% 4%, rgba(226, 205, 166, 0.2), transparent 28rem),
-    radial-gradient(circle at 50% 95%, rgba(202, 214, 226, 0.22), transparent 34rem),
-    linear-gradient(180deg, var(--desk-surface) 0%, var(--desk-bg) 52%, var(--desk-bg) 100%);
+    radial-gradient(circle at 8% 8%, rgba(185, 211, 171, 0.28), transparent 25rem),
+    radial-gradient(circle at 92% 7%, rgba(229, 205, 167, 0.28), transparent 28rem),
+    radial-gradient(circle at 56% 96%, rgba(191, 204, 224, 0.26), transparent 34rem),
+    linear-gradient(180deg, rgba(255, 252, 246, 0.92) 0%, var(--desk-bg) 50%, #f4efe6 100%);
 }
 
 button,
@@ -101,7 +101,7 @@ select:focus-visible {
 .glass-panel {
   background: color-mix(in srgb, var(--desk-surface) 78%, transparent);
   border: 1px solid var(--desk-border);
-  box-shadow: 0 18px 52px rgba(34, 34, 28, 0.08);
+  box-shadow: 0 18px 52px rgba(82, 70, 45, 0.08);
   backdrop-filter: blur(18px) saturate(1.12);
 }
 
@@ -116,4 +116,38 @@ select:focus-visible {
     radial-gradient(ellipse at 48% 70%, rgba(190, 207, 222, 0.6) 0 14%, transparent 38%),
     linear-gradient(135deg, rgba(255, 255, 252, 0.72), rgba(236, 231, 220, 0.44));
   filter: saturate(0.92);
+}
+
+.bevel-panel {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 253, 0.86), rgba(246, 241, 231, 0.66)),
+    color-mix(in srgb, var(--desk-surface) 86%, transparent);
+  border: 1px solid color-mix(in srgb, var(--desk-border) 84%, white 16%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -1px 0 rgba(105, 91, 69, 0.05),
+    0 18px 38px rgba(80, 68, 46, 0.08);
+  backdrop-filter: blur(18px) saturate(1.08);
+}
+
+.board-card-bevel {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 252, 0.92), rgba(247, 242, 231, 0.78)),
+    var(--desk-surface);
+  border: 1px solid rgba(126, 113, 91, 0.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(109, 95, 72, 0.06),
+    0 12px 26px rgba(84, 72, 50, 0.07);
+}
+
+:root[data-theme="dark"] .bevel-panel,
+:root[data-theme="dark"] .board-card-bevel {
+  background:
+    linear-gradient(145deg, rgba(35, 38, 32, 0.82), rgba(22, 24, 20, 0.74)),
+    var(--desk-surface);
+  border-color: var(--desk-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 18px 42px rgba(0, 0, 0, 0.26);
 }

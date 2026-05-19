@@ -109,7 +109,7 @@ export default function App() {
   const [view, setView] = useState<DeskView>("welcome");
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     const saved = localStorage.getItem("stilldesk:theme");
-    return saved === "light" ? "light" : "dark";
+    return saved === "dark" ? "dark" : "light";
   });
   const [query, setQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);

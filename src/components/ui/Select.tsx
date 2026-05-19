@@ -15,7 +15,7 @@ export function Select({ label, options, className, id, ...props }: SelectProps)
       <select
         id={selectId}
         className={clsx(
-          "h-10 rounded-lg border border-desk-border/80 bg-desk-surface px-3 text-sm text-desk-text transition focus:border-desk-accent",
+          "h-10 rounded-xl border border-desk-border/80 bg-desk-surface px-3 text-sm text-desk-text shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition focus:border-desk-accent",
           className,
         )}
         {...props}

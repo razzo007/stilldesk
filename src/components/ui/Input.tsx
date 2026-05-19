@@ -15,7 +15,7 @@ export function Input({ label, hint, className, id, ...props }: InputProps) {
       <input
         id={inputId}
         className={clsx(
-          "h-10 rounded-lg border border-desk-border/80 bg-desk-surface px-3 text-sm text-desk-text placeholder:text-desk-muted/70 transition focus:border-desk-accent",
+          "h-10 rounded-xl border border-desk-border/80 bg-desk-surface px-3 text-sm text-desk-text shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] placeholder:text-desk-muted/70 transition focus:border-desk-accent",
           className,
         )}
         {...props}

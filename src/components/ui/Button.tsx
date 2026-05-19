@@ -11,8 +11,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "border border-desk-border bg-desk-soft text-desk-text hover:bg-desk-border",
-  secondary: "border border-desk-border bg-desk-surface text-desk-text hover:border-desk-muted",
+  primary: "border border-desk-border bg-desk-accent-soft text-desk-text shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] hover:bg-desk-soft",
+  secondary: "border border-desk-border bg-desk-surface text-desk-text shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] hover:border-desk-muted",
   ghost: "text-desk-muted hover:bg-desk-soft hover:text-desk-text",
   danger: "bg-desk-red text-desk-redText hover:bg-[#efd9d6]",
 };
@@ -29,7 +29,7 @@ export function Button({
   return (
     <button
       className={clsx(
-        "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-55",
+        "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-55",
         variants[variant],
         className,
       )}
