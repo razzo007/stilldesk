@@ -27,25 +27,37 @@ export function DashboardOverview({ onSelect, profiles, tickets }: DashboardOver
       label,
       count: tickets.filter((ticket) => ticket.category === category).length,
     }))
-    .filter((item) => item.count > 0);
+    .filter((item) => item.count > 0)
+    .sort((a, b) => b.count - a.count);
+
+  const maxCategoryCount = Math.max(...categoryCounts.map((item) => item.count), 1);
 
   return (
     <section className="h-full overflow-y-auto bg-desk-bg p-4 scrollbar-soft lg:p-6">
       <div className="mx-auto grid max-w-6xl gap-5">
         <div>
-          <p className="text-sm font-medium text-desk-muted">Overview</p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-desk-text">
-            The quiet truth board.
-          </h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-desk-text">Overview</h1>
+          <p className="mt-1 text-sm text-desk-muted">The quiet truth board.</p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard label="Open tickets" note="Open, assigned, in progress" value={metrics.open} />
-          <MetricCard label="Blocked tickets" note="Needs a decision or dependency" value={metrics.blocked} />
-          <MetricCard label="Fixed this week" note="Ready for the next look" value={metrics.fixedThisWeek} />
+          <MetricCard
+            label="Blocked tickets"
+            note="Needs a decision or dependency"
+            tone="amber"
+            value={metrics.blocked}
+          />
+          <MetricCard
+            label="Fixed this week"
+            note="Ready for the next look"
+            tone="green"
+            value={metrics.fixedThisWeek}
+          />
           <MetricCard
             label="Waiting verification"
             note={metrics.waitingVerification ? "Someone should check these." : "Nothing waiting."}
+            tone="blue"
             value={metrics.waitingVerification}
           />
         </div>
@@ -60,11 +72,19 @@ export function DashboardOverview({ onSelect, profiles, tickets }: DashboardOver
             <h2 className="text-sm font-semibold text-desk-text">Tickets by category</h2>
             <div className="mt-4 grid gap-3">
               {categoryCounts.map((item) => (
-                <div className="flex items-center justify-between gap-3" key={item.category}>
-                  <span className="text-sm text-desk-text">{item.label}</span>
-                  <span className="rounded-full bg-desk-soft px-2.5 py-1 text-xs text-desk-muted">
-                    {item.count}
-                  </span>
+                <div className="flex items-center gap-3" key={item.category}>
+                  <span className="w-28 shrink-0 text-sm text-desk-text">{item.label}</span>
+                  <div className="flex flex-1 items-center gap-2">
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-desk-soft/60">
+                      <div
+                        className="h-full rounded-full bg-desk-accent/55 transition-all duration-500"
+                        style={{ width: `${(item.count / maxCategoryCount) * 100}%` }}
+                      />
+                    </div>
+                    <span className="w-6 text-right text-xs tabular-nums text-desk-muted">
+                      {item.count}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -101,11 +121,13 @@ export function DashboardOverview({ onSelect, profiles, tickets }: DashboardOver
 
         {metrics.oldestUnresolved ? (
           <button
-            className="glass-panel rounded-2xl p-5 text-left transition hover:border-desk-muted"
+            className="glass-panel rounded-2xl p-5 text-left transition hover:border-desk-muted shadow-[inset_4px_0_0_var(--desk-amber-text)]"
             onClick={() => onSelect(metrics.oldestUnresolved!)}
             type="button"
           >
-            <p className="text-sm font-semibold text-desk-text">Oldest unresolved ticket</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-desk-amberText">
+              Oldest unresolved
+            </p>
             <p className="mt-2 text-lg font-medium text-desk-text">{metrics.oldestUnresolved.title}</p>
             <p className="mt-1 text-sm text-desk-muted">
               Open since {formatDate(metrics.oldestUnresolved.created_at)}

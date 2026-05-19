@@ -1,5 +1,5 @@
 import { LogOut, Moon, Plus, Settings, Shield, Sun, UserRound } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { isSupabaseConfigured } from "../../lib/supabase";
 import { isLeader } from "../../lib/permissions";
 import type { Profile } from "../../types/user";
@@ -26,6 +26,18 @@ export function Header({
   theme,
 }: HeaderProps) {
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
 
   return (
     <header className="glass-panel z-20 flex min-h-16 items-center justify-between gap-4 rounded-none border-x-0 border-t-0 px-4 md:px-6">
@@ -33,10 +45,9 @@ export function Header({
         <div className="flex items-center gap-3">
           <img
             alt="StillDesk"
-            className="h-9 w-28 rounded-lg border border-desk-border/60 object-cover object-center opacity-90"
-            src="/assets/stilldesk-logo.jpg"
+            className="h-10 w-44 object-contain object-left"
+            src="/assets/stilldesk-logo.png"
           />
-          <span className="hidden text-sm text-desk-muted sm:inline">Calm issue desk</span>
         </div>
       </div>
       <div className="flex items-center gap-3">
@@ -52,8 +63,10 @@ export function Header({
         >
           New issue
         </Button>
-        <div className="relative">
+        <div className="relative" ref={menuRef}>
           <button
+            aria-expanded={open}
+            aria-haspopup="menu"
             className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-desk-soft"
             onClick={() => setOpen((value) => !value)}
             type="button"
@@ -67,27 +80,52 @@ export function Header({
             </div>
           </button>
           {open ? (
-            <div className="account-menu absolute right-0 top-12 z-40 w-60 rounded-2xl p-2">
-              <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-desk-text hover:bg-desk-soft" onClick={onProfile} type="button">
+            <div className="account-menu absolute right-0 top-12 z-40 w-60 rounded-2xl p-2" role="menu">
+              <button
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-desk-text hover:bg-desk-soft"
+                onClick={() => { onProfile(); setOpen(false); }}
+                role="menuitem"
+                type="button"
+              >
                 <UserRound className="h-4 w-4" aria-hidden="true" />
                 Profile
               </button>
-              <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-desk-text hover:bg-desk-soft" onClick={onProfile} type="button">
+              <button
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-desk-text hover:bg-desk-soft"
+                onClick={() => { onProfile(); setOpen(false); }}
+                role="menuitem"
+                type="button"
+              >
                 <Settings className="h-4 w-4" aria-hidden="true" />
                 Settings
               </button>
               {isLeader(currentUser) ? (
-                <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-desk-text hover:bg-desk-soft" onClick={onAdmin} type="button">
+                <button
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-desk-text hover:bg-desk-soft"
+                  onClick={() => { onAdmin(); setOpen(false); }}
+                  role="menuitem"
+                  type="button"
+                >
                   <Shield className="h-4 w-4" aria-hidden="true" />
                   Users
                 </button>
               ) : null}
-              <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-desk-text hover:bg-desk-soft" onClick={onToggleTheme} type="button">
+              <button
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-desk-text hover:bg-desk-soft"
+                onClick={() => { onToggleTheme(); setOpen(false); }}
+                role="menuitem"
+                type="button"
+              >
                 {theme === "dark" ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
                 {theme === "dark" ? "Light mode" : "Dark mode"}
               </button>
               <div className="my-1 h-px bg-desk-border" />
-              <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-desk-muted hover:bg-desk-soft hover:text-desk-text" onClick={onSignOut} type="button">
+              <button
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-desk-muted hover:bg-desk-soft hover:text-desk-text"
+                onClick={() => { onSignOut(); setOpen(false); }}
+                role="menuitem"
+                type="button"
+              >
                 <LogOut className="h-4 w-4" aria-hidden="true" />
                 Log out
               </button>

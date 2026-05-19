@@ -7,6 +7,12 @@ interface OwnerLoadListProps {
   profiles: Profile[];
 }
 
+function loadBadgeClass(count: number): string {
+  if (count >= 8) return "rounded-full bg-desk-red px-2.5 py-1 text-xs text-desk-redText font-medium";
+  if (count >= 5) return "rounded-full bg-desk-amber px-2.5 py-1 text-xs text-desk-amberText font-medium";
+  return "rounded-full bg-desk-soft px-2.5 py-1 text-xs text-desk-muted";
+}
+
 export function OwnerLoadList({ profiles, tickets }: OwnerLoadListProps) {
   const rows = profiles
     .map((profile) => ({
@@ -30,9 +36,7 @@ export function OwnerLoadList({ profiles, tickets }: OwnerLoadListProps) {
                 <Avatar name={profile.name} src={profile.avatar_url} />
                 <span className="truncate text-sm text-desk-text">{profile.name}</span>
               </div>
-              <span className="rounded-full bg-desk-soft px-2.5 py-1 text-xs text-desk-muted">
-                {count} open
-              </span>
+              <span className={loadBadgeClass(count)}>{count} open</span>
             </div>
           ))
         ) : (

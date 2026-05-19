@@ -11,6 +11,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Paintbrush,
+  Search,
   Server,
   SlidersHorizontal,
   Sparkles,
@@ -43,6 +44,7 @@ interface SidebarProps {
   view: DeskView;
   counts: Record<string, number>;
   onFilterChange: (filter: TicketFilter) => void;
+  onSearch: () => void;
   onToggleCollapse: () => void;
   onViewChange: (view: DeskView) => void;
 }
@@ -110,6 +112,7 @@ export function Sidebar({
   collapsed,
   counts,
   onFilterChange,
+  onSearch,
   onToggleCollapse,
   onViewChange,
   view,
@@ -152,30 +155,53 @@ export function Sidebar({
       }`}
     >
       <nav className="shrink-0 grid gap-1">
-        <div className="flex items-center gap-1">
-          <button
-            className={`${navClass(view === "welcome", collapsed)} flex-1`}
-            onClick={() => onViewChange("welcome")}
-            type="button"
-            title="Home"
-          >
-            <span className="inline-flex items-center gap-2">
-              <Home className="h-4 w-4" aria-hidden="true" />
-              {!collapsed ? "Home" : null}
-            </span>
-          </button>
-          <button
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className={`inline-flex h-10 shrink-0 items-center justify-center rounded-xl border border-desk-border/70 bg-desk-surface/35 text-desk-muted transition hover:bg-desk-surface/70 hover:text-desk-text ${
-              collapsed ? "w-8" : "w-9"
-            }`}
-            onClick={onToggleCollapse}
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            type="button"
-          >
-            {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-          </button>
-        </div>
+        <button
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className={navClass(false, collapsed)}
+          onClick={onToggleCollapse}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          type="button"
+        >
+          <span className="inline-flex items-center gap-2">
+            {collapsed ? (
+              <PanelLeftOpen className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <PanelLeftClose className="h-4 w-4" aria-hidden="true" />
+            )}
+            {!collapsed ? "Collapse" : null}
+          </span>
+        </button>
+
+        <button
+          className={navClass(false, collapsed)}
+          onClick={onSearch}
+          title="Search (⌘K)"
+          type="button"
+        >
+          <span className="inline-flex items-center gap-2">
+            <Search className="h-4 w-4" aria-hidden="true" />
+            {!collapsed ? <span className="text-desk-muted/80">Search…</span> : null}
+          </span>
+          {!collapsed ? (
+            <kbd className="rounded border border-desk-border/70 bg-desk-surface/60 px-1.5 py-0.5 text-[10px] text-desk-muted">
+              ⌘K
+            </kbd>
+          ) : null}
+        </button>
+
+        <div className="my-1 h-px bg-desk-border/60" />
+
+        <button
+          className={navClass(view === "welcome", collapsed)}
+          onClick={() => onViewChange("welcome")}
+          type="button"
+          title="Home"
+        >
+          <span className="inline-flex items-center gap-2">
+            <Home className="h-4 w-4" aria-hidden="true" />
+            {!collapsed ? "Home" : null}
+          </span>
+        </button>
         <button
           className={navClass(view === "tickets", collapsed)}
           onClick={() => onViewChange("tickets")}
@@ -335,7 +361,7 @@ function SidebarFilterButton({
         <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
         {!collapsed ? <span className="truncate">{filter.label}</span> : null}
       </span>
-      {!collapsed ? <span className="text-xs text-desk-muted">{count}</span> : null}
+      {!collapsed && count > 0 ? <span className="text-xs text-desk-muted">{count}</span> : null}
     </button>
   );
 }

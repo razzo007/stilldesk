@@ -20,6 +20,10 @@ export default {
           amberText: "var(--desk-amber-text)",
           red: "var(--desk-red)",
           redText: "var(--desk-red-text)",
+          blue: "var(--desk-blue)",
+          blueText: "var(--desk-blue-text)",
+          stone: "var(--desk-stone)",
+          stoneText: "var(--desk-stone-text)",
         },
       },
       boxShadow: {

@@ -47,6 +47,13 @@ export function AppShell({
     });
   }
 
+  function handleSearch() {
+    onViewChange("tickets");
+    setTimeout(() => {
+      document.getElementById("ticket-search")?.focus();
+    }, 0);
+  }
+
   return (
     <div className="flex h-screen min-h-[640px] flex-col overflow-hidden text-desk-text">
       <Header
@@ -64,6 +71,7 @@ export function AppShell({
           collapsed={sidebarCollapsed}
           counts={counts}
           onFilterChange={onFilterChange}
+          onSearch={handleSearch}
           onToggleCollapse={toggleSidebar}
           onViewChange={onViewChange}
           view={view}
