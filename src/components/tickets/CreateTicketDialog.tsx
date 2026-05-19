@@ -1,4 +1,4 @@
-import { Paperclip, Plus, X } from "lucide-react";
+import { ChevronDown, ChevronUp, ImagePlus, Plus, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { categories, categoryLabels, modules, priorities, priorityLabels } from "../../lib/constants";
 import { validateAttachment } from "../../lib/storage";
@@ -6,7 +6,6 @@ import type { CreateTicketInput, TicketCategory, TicketPriority } from "../../ty
 import type { Profile } from "../../types/user";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
-import { Modal } from "../ui/Modal";
 import { Select } from "../ui/Select";
 import { Textarea } from "../ui/Textarea";
 
@@ -27,56 +26,72 @@ export function CreateTicketDialog({ open, profiles, onClose, onCreate }: Create
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [dragging, setDragging] = useState(false);
 
   const fileLabel = useMemo(() => {
-    if (!files.length) return "PNG, JPG, JPEG, WebP. Max 3 screenshots.";
-    return files.map((file) => file.name).join(", ");
+    if (!files.length) return null;
+    return files.map((f) => f.name).join(", ");
   }, [files]);
 
-  const addFiles = useCallback(function addFiles(nextFiles: File[]) {
-    setError("");
-    const selected = [...files, ...nextFiles].slice(0, 3);
-    const validation = selected.map(validateAttachment).find(Boolean);
-
-    if (validation) {
-      setError(validation);
-      return;
-    }
-
-    setFiles(selected);
-  }, [files]);
-
-  function setSelectedFiles(fileList: FileList | null) {
-    addFiles(Array.from(fileList ?? []));
-  }
+  const addFiles = useCallback(
+    function addFiles(nextFiles: File[]) {
+      setError("");
+      const selected = [...files, ...nextFiles].slice(0, 3);
+      const validation = selected.map(validateAttachment).find(Boolean);
+      if (validation) {
+        setError(validation);
+        return;
+      }
+      setFiles(selected);
+    },
+    [files],
+  );
 
   useEffect(() => {
     if (!open) return;
 
     function onPaste(event: ClipboardEvent) {
-      const pasted = Array.from(event.clipboardData?.files ?? []).filter((file) =>
-        file.type.startsWith("image/"),
+      const pasted = Array.from(event.clipboardData?.files ?? []).filter((f) =>
+        f.type.startsWith("image/"),
       );
-
       if (pasted.length) {
         event.preventDefault();
         addFiles(pasted);
       }
     }
 
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+
     window.addEventListener("paste", onPaste);
-    return () => window.removeEventListener("paste", onPaste);
-  }, [addFiles, open]);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("paste", onPaste);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [addFiles, onClose, open]);
+
+  function reset() {
+    setTitle("");
+    setDescription("");
+    setCategory("frontend");
+    setPriority("medium");
+    setModule("");
+    setAssignedTo("");
+    setFiles([]);
+    setError("");
+    setDetailOpen(false);
+  }
 
   async function submit() {
     if (!title.trim()) {
-      setError("What broke?");
+      setError("Add a title first.");
       return;
     }
-
     setSaving(true);
     setError("");
-
     try {
       await onCreate({
         title: title.trim(),
@@ -87,13 +102,7 @@ export function CreateTicketDialog({ open, profiles, onClose, onCreate }: Create
         assigned_to: assignedTo || undefined,
         attachments: files,
       });
-      setTitle("");
-      setDescription("");
-      setCategory("frontend");
-      setPriority("medium");
-      setModule("");
-      setAssignedTo("");
-      setFiles([]);
+      reset();
       onClose();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not create issue.");
@@ -102,121 +111,189 @@ export function CreateTicketDialog({ open, profiles, onClose, onCreate }: Create
     }
   }
 
+  if (!open) return null;
+
   return (
-    <Modal
-      description="Capture the issue, attach the clue, tag the owner if you know them."
-      onClose={onClose}
-      open={open}
-      title="New issue"
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-4 pb-0 pt-6 backdrop-blur-sm sm:items-center sm:py-6"
+      onClick={(e) => { if (e.target === e.currentTarget) { reset(); onClose(); } }}
     >
-      <div className="grid gap-5">
-        <Input
-          label="What broke?"
-          name="title"
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="Pricing page CTA overlaps on mobile"
-          required
-          value={title}
-        />
-
-        <Textarea
-          hint="Short is fine. The goal is clarity, not ceremony."
-          label="Description"
-          name="description"
-          onChange={(event) => setDescription(event.target.value)}
-          placeholder="Where did it happen? What did you expect?"
-          value={description}
-        />
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Select
-            label="Category"
-            name="category"
-            onChange={(event) => setCategory(event.target.value as TicketCategory)}
-            options={categories.map((item) => ({ value: item, label: categoryLabels[item] }))}
-            value={category}
-          />
-          <Select
-            label="Priority"
-            name="priority"
-            onChange={(event) => setPriority(event.target.value as TicketPriority)}
-            options={priorities.map((item) => ({ value: item, label: priorityLabels[item] }))}
-            value={priority}
-          />
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Select
-            label="Module/page"
-            name="module"
-            onChange={(event) => setModule(event.target.value)}
-            options={[
-              { value: "", label: "Not sure" },
-              ...modules.map((item) => ({ value: item, label: item })),
-            ]}
-            value={module}
-          />
-          <Select
-            label="Tag owner"
-            name="assigned_to"
-            onChange={(event) => setAssignedTo(event.target.value)}
-            options={[
-              { value: "", label: "Unassigned" },
-              ...profiles.map((profile) => ({ value: profile.id, label: profile.name })),
-            ]}
-            value={assignedTo}
-          />
-        </div>
-
-        <label
-          className="grid cursor-pointer gap-2 rounded-xl border border-dashed border-desk-border bg-desk-soft/45 p-5 text-sm text-desk-text transition hover:border-desk-muted"
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={(event) => {
-            event.preventDefault();
-            addFiles(Array.from(event.dataTransfer.files));
-          }}
-        >
-          <span className="flex items-center gap-2 font-medium">
-            <Paperclip className="h-4 w-4" aria-hidden="true" />
-            Add screenshot
-          </span>
-          <span className="text-desk-muted">{fileLabel} Paste or drag screenshots here.</span>
-          <input
-            accept="image/png,image/jpeg,image/jpg,image/webp"
-            className="sr-only"
-            multiple
-            onChange={(event) => setSelectedFiles(event.target.files)}
-            type="file"
-          />
-        </label>
-
-        {files.length ? (
-          <div className="grid gap-2">
-            {files.map((file, index) => (
-              <div
-                className="flex items-center justify-between gap-3 rounded-xl border border-desk-border bg-desk-surface px-3 py-2 text-sm"
-                key={`${file.name}-${file.size}-${index}`}
-              >
-                <span className="min-w-0 truncate text-desk-text">{file.name}</span>
-                <button
-                  aria-label={`Remove ${file.name}`}
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-desk-muted transition hover:bg-desk-soft hover:text-desk-text"
-                  onClick={() => setFiles((current) => current.filter((_, itemIndex) => itemIndex !== index))}
-                  type="button"
-                >
-                  <X className="h-4 w-4" aria-hidden="true" />
-                </button>
-              </div>
-            ))}
+      <section className="flex w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-desk-bg shadow-2xl sm:rounded-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-desk-border/70 px-5 py-4">
+          <div>
+            <h2 className="text-base font-semibold text-desk-text">New issue</h2>
+            <p className="text-xs text-desk-muted">Title and screenshot are enough to start.</p>
           </div>
-        ) : null}
+          <button
+            aria-label="Close"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-desk-muted transition hover:bg-desk-soft hover:text-desk-text"
+            onClick={() => { reset(); onClose(); }}
+            type="button"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
 
-        {error ? <p className="rounded-lg bg-desk-red px-3 py-2 text-sm text-desk-redText">{error}</p> : null}
+        <div className="overflow-y-auto px-5 py-5 scrollbar-soft">
+          {/* Title */}
+          <Input
+            autoFocus
+            label="What broke?"
+            name="title"
+            onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
+            placeholder="Pricing page CTA overlaps on mobile"
+            required
+            value={title}
+          />
 
-        <div className="flex flex-col-reverse gap-3 border-t border-desk-border pt-5 sm:flex-row sm:justify-end">
-          <Button onClick={onClose} type="button" variant="ghost">
+          {/* Screenshot zone — prominent */}
+          <div className="mt-4">
+            <label
+              className={`relative flex min-h-[9rem] cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed text-center transition ${
+                dragging
+                  ? "border-desk-accent bg-desk-accentSoft/30"
+                  : files.length
+                    ? "border-desk-border bg-desk-soft/40"
+                    : "border-desk-border/70 bg-desk-soft/20 hover:border-desk-muted hover:bg-desk-soft/40"
+              }`}
+              onDragEnter={() => setDragging(true)}
+              onDragLeave={() => setDragging(false)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragging(false);
+                addFiles(Array.from(e.dataTransfer.files));
+              }}
+            >
+              {files.length ? (
+                <div className="w-full px-4 py-3">
+                  <div className="grid gap-1.5">
+                    {files.map((file, index) => (
+                      <div
+                        className="flex items-center justify-between gap-3 rounded-lg bg-desk-surface/70 px-3 py-2 text-sm"
+                        key={`${file.name}-${index}`}
+                      >
+                        <span className="min-w-0 truncate text-xs text-desk-text">{file.name}</span>
+                        <button
+                          aria-label={`Remove ${file.name}`}
+                          className="shrink-0 rounded p-0.5 text-desk-muted hover:text-desk-redText"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setFiles((curr) => curr.filter((_, i) => i !== index));
+                          }}
+                          type="button"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                    {files.length < 3 && (
+                      <p className="mt-1 text-center text-[11px] text-desk-muted">
+                        + drop another (max 3)
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <ImagePlus className="h-7 w-7 text-desk-muted/60" aria-hidden="true" />
+                  <span className="text-sm font-medium text-desk-muted">
+                    Drop or paste a screenshot
+                  </span>
+                  <span className="text-[11px] text-desk-muted/60">PNG, JPG, WebP — max 3</span>
+                </>
+              )}
+              <input
+                accept="image/png,image/jpeg,image/jpg,image/webp"
+                className="sr-only"
+                multiple
+                onChange={(e) => addFiles(Array.from(e.target.files ?? []))}
+                type="file"
+              />
+            </label>
+          </div>
+
+          {/* Optional detail toggle */}
+          <button
+            className="mt-4 flex w-full items-center gap-2 rounded-lg px-1 py-2 text-xs text-desk-muted transition hover:text-desk-text"
+            onClick={() => setDetailOpen((v) => !v)}
+            type="button"
+          >
+            {detailOpen ? (
+              <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+            )}
+            {detailOpen ? "Hide detail" : "Add context, owner, or priority"}
+          </button>
+
+          {detailOpen ? (
+            <div className="mt-1 grid gap-4">
+              <Textarea
+                hint="Short is fine."
+                label="Context"
+                name="description"
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Where did it happen? What did you expect?"
+                value={description}
+              />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Select
+                  label="Category"
+                  name="category"
+                  onChange={(e) => setCategory(e.target.value as TicketCategory)}
+                  options={categories.map((item) => ({ value: item, label: categoryLabels[item] }))}
+                  value={category}
+                />
+                <Select
+                  label="Priority"
+                  name="priority"
+                  onChange={(e) => setPriority(e.target.value as TicketPriority)}
+                  options={priorities.map((item) => ({ value: item, label: priorityLabels[item] }))}
+                  value={priority}
+                />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Select
+                  label="Owner"
+                  name="assigned_to"
+                  onChange={(e) => setAssignedTo(e.target.value)}
+                  options={[
+                    { value: "", label: "Unassigned" },
+                    ...profiles.map((p) => ({ value: p.id, label: p.name })),
+                  ]}
+                  value={assignedTo}
+                />
+                <Select
+                  label="Module"
+                  name="module"
+                  onChange={(e) => setModule(e.target.value)}
+                  options={[
+                    { value: "", label: "Not sure" },
+                    ...modules.map((item) => ({ value: item, label: item })),
+                  ]}
+                  value={module}
+                />
+              </div>
+            </div>
+          ) : null}
+
+          {error ? (
+            <p className="mt-3 rounded-lg bg-desk-red px-3 py-2 text-sm text-desk-redText">{error}</p>
+          ) : null}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between border-t border-desk-border/70 px-5 py-4">
+          <button
+            className="text-xs text-desk-muted transition hover:text-desk-text"
+            onClick={() => { reset(); onClose(); }}
+            type="button"
+          >
             Cancel
-          </Button>
+          </button>
           <Button
             icon={<Plus className="h-4 w-4" aria-hidden="true" />}
             isLoading={saving}
@@ -227,7 +304,7 @@ export function CreateTicketDialog({ open, profiles, onClose, onCreate }: Create
             Create issue
           </Button>
         </div>
-      </div>
-    </Modal>
+      </section>
+    </div>
   );
 }
