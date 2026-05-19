@@ -187,7 +187,6 @@ On mobile and tablet you can browse tickets, read comments, and view the dashboa
 - Paste screenshot support
 - Comment mentions
 - Notification digest
-- Optional Slack handoff
 - Compact mobile ticket detail route
 
 StillDesk should stay small. Every feature needs to earn its place.

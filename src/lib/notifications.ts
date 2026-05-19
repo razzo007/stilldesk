@@ -20,7 +20,11 @@ export async function sendTicketEmail(payload: TicketEmailPayload) {
 
   if (!session?.access_token) return;
 
-  const response = await fetch("/.netlify/functions/send-ticket-email", {
+  const emailFunctionUrl =
+    (import.meta.env.VITE_EMAIL_FUNCTION_URL as string | undefined) ??
+    "/.netlify/functions/send-ticket-email";
+
+  const response = await fetch(emailFunctionUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -243,7 +243,7 @@ export function TicketDetail({ ticket, currentUser, profiles, allTickets, onTick
     <section className="min-h-0 overflow-y-auto bg-desk-bg/35 scrollbar-soft">
       <article className="mx-auto grid max-w-6xl gap-7 px-5 py-6 lg:px-9 lg:py-8">
         <header className="border-b border-desk-border/80 pb-6">
-          <div className="flex flex-wrap items-start justify-between gap-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs font-semibold tracking-[0.1em] text-desk-muted">
                 {displayTicketId(ticket.id)}
@@ -252,92 +252,97 @@ export function TicketDetail({ ticket, currentUser, profiles, allTickets, onTick
                 {ticket.title}
               </h1>
             </div>
-            <div className="flex flex-wrap items-center justify-end gap-1.5">
-              <StatusBadge status={ticket.status} />
-              <PriorityBadge priority={ticket.priority} />
-              <CategoryBadge category={ticket.category} />
-              <Button className="ml-2 min-h-8 px-3 py-1 text-xs" onClick={() => setEditOpen((value) => !value)}>
-                {editOpen ? "Close" : "Edit"}
-              </Button>
-              {!editOpen ? (
-                <>
-                  {!ticket.assigned_to && canAssign ? (
-                    <Button
-                      className="min-h-8 px-3 py-1 text-xs"
-                      isLoading={saving}
-                      onClick={() => patchTicket({ assigned_to: currentUser.id, status: "assigned" })}
-                      variant="ghost"
-                    >
-                      Assign to me
-                    </Button>
-                  ) : null}
-                  {canEdit && ticket.status !== "in_progress" && !["verified", "closed"].includes(ticket.status) ? (
-                    <Button
-                      className="min-h-8 px-3 py-1 text-xs"
-                      isLoading={saving}
-                      onClick={() =>
-                        patchTicket({
-                          assigned_to: ticket.assigned_to || currentUser.id,
-                          status: "in_progress",
-                        })
-                      }
-                      variant="ghost"
-                    >
-                      Start fixing
-                    </Button>
-                  ) : null}
-                  {canEdit ? (
-                    <Button
-                      className="min-h-8 px-3 py-1 text-xs"
-                      isLoading={saving}
-                      onClick={() => {
-                        setEditOpen(true);
-                        setActionError("Add what this is waiting on, then save blocked.");
-                      }}
-                      variant="ghost"
-                    >
-                      Mark blocked
-                    </Button>
-                  ) : null}
-                  {canFix ? (
-                    <Button
-                      className="min-h-8 px-3 py-1 text-xs"
-                      isLoading={saving}
-                      onClick={() => patchTicket({ status: "fixed" })}
-                      variant="ghost"
-                    >
-                      Mark fixed
-                    </Button>
-                  ) : null}
-                  {canVerify ? (
-                    <Button
-                      className="min-h-8 px-3 py-1 text-xs"
-                      isLoading={saving}
-                      onClick={() => patchTicket({ status: "verified" })}
-                    >
-                      Verify
-                    </Button>
-                  ) : null}
-                  {canClose ? (
-                    <Button
-                      className="min-h-8 px-3 py-1 text-xs"
-                      isLoading={saving}
-                      onClick={() => patchTicket({ status: "closed" })}
-                      variant="ghost"
-                    >
-                      Close
-                    </Button>
-                  ) : null}
-                  {["fixed", "verified", "closed"].includes(ticket.status) && canReopen ? (
-                    <Button
-                      className="min-h-8 px-3 py-1 text-xs"
-                      onClick={() => setReopenOpen((value) => !value)}
-                      variant="ghost"
-                    >
-                      Reopen
-                    </Button>
-                  ) : null}
-                </>
+            {canEdit ? (
+              <button
+                className="mt-1 shrink-0 text-xs text-desk-muted transition-colors hover:text-desk-text"
+                onClick={() => setEditOpen((value) => !value)}
+                type="button"
+              >
+                {editOpen ? "Done" : "Edit"}
+              </button>
+            ) : null}
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-1.5">
+            <StatusBadge status={ticket.status} />
+            <PriorityBadge priority={ticket.priority} />
+            <CategoryBadge category={ticket.category} />
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
+              {!ticket.assigned_to && canAssign ? (
+                <Button
+                  className="min-h-8 px-3 py-1 text-xs"
+                  isLoading={saving}
+                  onClick={() => patchTicket({ assigned_to: currentUser.id, status: "assigned" })}
+                  variant="ghost"
+                >
+                  Assign to me
+                </Button>
+              ) : null}
+              {canEdit && ticket.status !== "in_progress" && !["verified", "closed"].includes(ticket.status) ? (
+                <Button
+                  className="min-h-8 px-3 py-1 text-xs"
+                  isLoading={saving}
+                  onClick={() =>
+                    patchTicket({
+                      assigned_to: ticket.assigned_to || currentUser.id,
+                      status: "in_progress",
+                    })
+                  }
+                  variant="ghost"
+                >
+                  Start fixing
+                </Button>
+              ) : null}
+              {canEdit && !["verified", "closed"].includes(ticket.status) ? (
+                <Button
+                  className="min-h-8 px-3 py-1 text-xs"
+                  isLoading={saving}
+                  onClick={() => {
+                    setEditOpen(true);
+                    setActionError("Add what this is waiting on, then save blocked.");
+                  }}
+                  variant="ghost"
+                >
+                  Mark blocked
+                </Button>
+              ) : null}
+              {canFix ? (
+                <Button
+                  className="min-h-8 px-3 py-1 text-xs"
+                  isLoading={saving}
+                  onClick={() => patchTicket({ status: "fixed" })}
+                  variant="secondary"
+                >
+                  Mark fixed
+                </Button>
+              ) : null}
+              {canVerify ? (
+                <Button
+                  className="min-h-8 px-3 py-1 text-xs"
+                  isLoading={saving}
+                  onClick={() => patchTicket({ status: "verified" })}
+                  variant="primary"
+                >
+                  Verify
+                </Button>
+              ) : null}
+              {canClose ? (
+                <Button
+                  className="min-h-8 px-3 py-1 text-xs"
+                  isLoading={saving}
+                  onClick={() => patchTicket({ status: "closed" })}
+                  variant="ghost"
+                >
+                  Close
+                </Button>
+              ) : null}
+              {["fixed", "verified", "closed"].includes(ticket.status) && canReopen ? (
+                <Button
+                  className="min-h-8 px-3 py-1 text-xs"
+                  onClick={() => setReopenOpen((value) => !value)}
+                  variant="ghost"
+                >
+                  Reopen
+                </Button>
               ) : null}
             </div>
           </div>
@@ -422,8 +427,8 @@ export function TicketDetail({ ticket, currentUser, profiles, allTickets, onTick
           <aside className="grid content-start gap-5">
             {editOpen ? (
             <section className="glass-panel rounded-2xl p-4">
-              <h2 className="text-sm font-semibold text-desk-text">Update</h2>
-              <div className="mt-4 grid gap-3.5">
+              <h2 className="mb-4 text-sm font-semibold text-desk-text">Update</h2>
+              <div className="grid gap-3.5">
                 <Select
                   label="Status"
                   name="status"
@@ -511,11 +516,7 @@ export function TicketDetail({ ticket, currentUser, profiles, allTickets, onTick
                 </div>
               </div>
             </section>
-            ) : (
-              <section className="glass-panel rounded-2xl p-4 text-sm text-desk-muted">
-                Reading mode. Edit when the ticket needs a change.
-              </section>
-            )}
+            ) : null}
 
             <section className="px-1 text-sm text-desk-muted">
               <p>Fixed: <span className="text-desk-text">{formatDate(ticket.fixed_at)}</span></p>
