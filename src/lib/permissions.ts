@@ -1,8 +1,12 @@
 import type { Profile } from "../types/user";
 import type { Ticket } from "../types/ticket";
 
+export function isActiveAccount(profile: Profile | null | undefined) {
+  return profile?.account_status !== "suspended";
+}
+
 export function isLeader(profile: Profile | null | undefined) {
-  return profile?.role === "admin" || profile?.role === "supreme_leader";
+  return isActiveAccount(profile) && (profile?.role === "admin" || profile?.role === "supreme_leader");
 }
 
 export function canViewTicket(profile: Profile, ticket: Ticket) {

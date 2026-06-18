@@ -107,20 +107,82 @@ Run the migrations in `supabase/migrations/` in order:
 - `0002_internal_team_launch.sql`
 - `0003_first_run_onboarding.sql`
 - `0004_ticket_links_and_delete.sql`
+- `0005_jira_project_management.sql` — Jira-like workspaces, projects, boards, sprints, and issues
+- `0006_auth_sso_authorization.sql` — Microsoft SSO, permissions, invitations, audit log
 
 It creates:
 
 - `profiles`
-- `issue_tickets`
-- `issue_comments`
-- `issue_attachments`
-- `issue_activity`
-- private storage bucket `stilldesk-attachments`
+- `issue_tickets` (original StillDesk bug desk — still used by the current UI)
+- `issue_comments`, `issue_attachments`, `issue_activity`
+- **Jira layer (0005):** `workspaces`, `projects`, `issues`, `boards`, `sprints`, `labels`, `components`, `versions`, `issue_links`, and related tables
+- View `issues_with_key` (e.g. `STILL-42`)
+- private storage buckets `stilldesk-attachments` and `stilldesk-issue-files`
 - public avatar bucket `stilldesk-avatars`
-- RLS policies for authenticated ticket access
+- RLS policies for authenticated ticket and project access
 - indexes for status, owner, creator, category, priority, and dates
-- triggers for `updated_at` and ticket activity
+- triggers for `updated_at`, ticket activity, issue numbering, and project defaults
 - internal-team launch hardening in `0002_internal_team_launch.sql`
+
+### Jira-style schema quick start
+
+After migrations, create a workspace and project (SQL editor or API), then optionally import existing tickets:
+
+```sql
+-- Replace with your profile UUID
+insert into public.workspaces (name, slug, created_by)
+values ('My Team', 'my-team', 'YOUR_USER_ID')
+returning id;
+
+insert into public.projects (workspace_id, key, name, created_by)
+values ('WORKSPACE_ID', 'APP', 'My App', 'YOUR_USER_ID')
+returning id;
+
+-- One-time import from issue_tickets
+select public.migrate_legacy_tickets('PROJECT_ID');
+```
+
+See `supabase/seed/jira_bootstrap.sql` for a copy-paste template. TypeScript types live in `src/types/project-management.ts`.
+
+### Microsoft SSO and authorization
+
+Migration `0006_auth_sso_authorization.sql` adds:
+
+- `platform_auth_settings` — allowed domains, tenant IDs, enforce SSO, email/password toggles
+- `workspace_auth_settings` — per-workspace overrides
+- `user_auth_identities` — links Supabase `auth.identities` (Azure OID, tenant)
+- `user_invitations` — invite-by-email before first login
+- `app_permissions` / `role_permission_grants` — RBAC mapped to `profiles.role`
+- `auth_audit_log` — sign-in and admin events
+- Triggers on `auth.users` and `auth.identities` for auto-provisioning
+
+**Supabase Dashboard setup**
+
+1. Authentication → Providers → **Azure** → enable
+2. Paste Application (client) ID and secret from Microsoft Entra
+3. Add redirect URL: `https://<project-ref>.supabase.co/auth/v1/callback`
+4. In Entra, register redirect URI for your app and grant `openid`, `email`, `profile`
+
+**Local env:** set `VITE_AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_CLIENT_SECRET` (see `.env.example`).
+
+**Configure policy in SQL** (or use `supabase/seed/auth_bootstrap.sql`):
+
+```sql
+update public.platform_auth_settings set
+  allowed_email_domains = array['yourcompany.com'],
+  microsoft_tenant_id = 'YOUR_TENANT_ID',
+  enforce_microsoft_sso = false,
+  allow_email_password = true
+where id = 1;
+```
+
+**Invitations (admin RPC):**
+
+```sql
+select * from public.create_user_invitation('newhire@yourcompany.com', 'developer');
+```
+
+The login screen includes **Continue with Microsoft** when Supabase is configured.
 
 The app expects the private screenshot bucket to be named:
 
