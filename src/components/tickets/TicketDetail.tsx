@@ -1,7 +1,8 @@
 import { CheckCircle2, CircleDot, Link2, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { categories, categoryLabels, priorities, priorityLabels, statuses, statusLabels } from "../../lib/constants";
-import { addComment, updateTicket } from "../../lib/tickets";
+import { addComment } from "../../lib/tickets";
+import { useUpdateTicket } from "../../queries/tickets";
 import { sendTicketEmail, uniqueEmails } from "../../lib/notifications";
 import {
   canAssignTicket,
@@ -36,6 +37,7 @@ interface TicketDetailProps {
 }
 
 export function TicketDetail({ ticket, currentUser, profiles, allTickets, onTicketChange, onSelectTicket, onDeleteTicket }: TicketDetailProps) {
+  const updateTicketMutation = useUpdateTicket();
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -106,7 +108,7 @@ export function TicketDetail({ ticket, currentUser, profiles, allTickets, onTick
     }
   }
 
-  function validateStatusChange(updates: Parameters<typeof updateTicket>[1]) {
+  function validateStatusChange(updates: Partial<Pick<Ticket, "status" | "assigned_to" | "priority" | "dependency_note" | "blocked_by_id" | "category">>) {
     if (!updates.status) return true;
 
     if (updates.status === "fixed" && !canFix) {
@@ -146,7 +148,7 @@ export function TicketDetail({ ticket, currentUser, profiles, allTickets, onTick
     return true;
   }
 
-  async function patchTicket(updates: Parameters<typeof updateTicket>[1]) {
+  async function patchTicket(updates: Partial<Pick<Ticket, "status" | "assigned_to" | "priority" | "dependency_note" | "blocked_by_id" | "category">>) {
     if (!validateStatusChange(updates)) return;
 
     setSaving(true);
@@ -156,7 +158,11 @@ export function TicketDetail({ ticket, currentUser, profiles, allTickets, onTick
         updates.status === "blocked"
           ? { ...updates, dependency_note: (updates.dependency_note ?? dependencyNote).trim() }
           : updates;
-      const updated = await updateTicket(currentTicket, normalizedUpdates, currentUser);
+      const updated = await updateTicketMutation.mutateAsync({
+        ticket: currentTicket,
+        updates: normalizedUpdates,
+        user: currentUser,
+      });
       onTicketChange(updated);
       const assignee = profiles.find((profile) => profile.id === updated.assigned_to) ?? updated.assignee;
       const reporter = profiles.find((profile) => profile.id === updated.created_by) ?? updated.reporter;
